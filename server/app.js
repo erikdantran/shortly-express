@@ -21,17 +21,18 @@ app.use(cookieParser);
 
 
 
-app.get('/',
+app.get('/', Auth.verifySession,
+  (req, res) => {
+    // console.log('req.session in "/"', req.session);
+    res.render('index');
+  });
+
+app.get('/create', Auth.verifySession,
   (req, res) => {
     res.render('index');
   });
 
-app.get('/create',
-  (req, res) => {
-    res.render('index');
-  });
-
-app.get('/links',
+app.get('/links', Auth.verifySession,
   (req, res, next) => {
     models.Links.getAll()
       .then(links => {
@@ -91,6 +92,7 @@ app.post('/signup', (req, res) => {
     .then((newUser) => {
       models.Sessions.update({ hash: req.session.hash }, { userId: newUser.insertId })
         .then(() => {
+          // console.log('USERID: ', newUser.insertId);
           res.redirect(300, '/');
         })
         .catch(() => {
@@ -167,6 +169,9 @@ app.get('/:code', (req, res, next) => {
       res.status(500).send(error);
     })
     .catch(() => {
+      console.log('req. session in app', req.session);
+      console.log('req.cookies in bad link: ', req.cookies);
+      console.log('res.cookies in bad link: ', res.cookies);
       res.redirect('/');
     });
 });
